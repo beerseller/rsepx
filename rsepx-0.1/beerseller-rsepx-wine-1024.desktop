@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Run wine applications on separate X (1024x768)
+Name[ru]=Запуск wine приложений в отдельной X ессии (1024x768)
+MimeType=application/x-ms-dos-executable;application/x-msi;application/x-win-lnk;application/x-ms-shortcut;
+Icon=wine
+Exec=rsepx-wine --1024 %f
+NoDisplay=true
+StartupNotify=true
+X-Desktop-File-Install-Version=0.18
+

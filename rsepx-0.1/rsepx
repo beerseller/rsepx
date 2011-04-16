@@ -1,0 +1,82 @@
+#!/bin/bash
+usage()
+{
+  echo "Usage: " `basename $0` " [--wine] [--1024] [--800] <command>"
+
+}
+echo `pwd` "$*" >/tmp/error
+if [[ $( basename $0 ) = "rsepx-wine" ]]
+then
+ wine="yes"
+fi
+run=""
+params=""
+until [ -z "$1" ]
+do
+ case $1 in
+   "--wine" ) wine="yes";;
+   "--1024" ) xrandr="1024x768";;
+   "--800"  ) xrandr="800x600";;
+   *        ) 
+ if [ -z "$run" ]
+ then
+   run=$1
+ else
+   params="$params $1"
+ fi
+ ;;
+ esac
+ shift
+done
+echo $run 
+echo $params
+if [ -z "$run" ] 
+then
+ usage
+ exit 1
+fi
+
+command=$run
+prefix=""
+  
+fullpath=`readlink -f "$command"`
+path=`find "$fullpath" -printf %h`
+if [ -z "$path" ]
+then
+ usage 
+ echo "command not found"
+ exit 1
+fi
+
+if [[ "x$wine" = "xyes" ]]
+then
+ params="\"$command $params\""
+ command="/usr/bin/wine"
+ prefix="WINEDEBUG=-all"
+ fullpath=$command
+fi
+
+if [ ! -x "$fullpath" ]
+then 
+ usage 
+ echo "\"$fullpath\" not executable"
+ exit 1 
+fi
+#echo `basename $0` $wine $path $command $params
+script=$( mktemp -u --tmpdir rsepx.XXXXXXXXX )
+echo "#!/bin/bash" > $script
+echo "cd \"$path\"" >> $script
+if [ ! -z "$xrandr" ] 
+then
+ echo "xrandr -s \"$xrandr\"" >> $script
+fi
+echo $prefix $command $params >> $script
+#echo $script
+chmod +x $script
+DISPLAY_NO=0
+while [ -f /tmp/.X$DISPLAY_NO-lock ]
+do
+ let DISPLAY_NO+=1
+done
+startx $script -- :$DISPLAY_NO >/dev/null
+#rm $script
