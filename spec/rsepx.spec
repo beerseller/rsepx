@@ -19,7 +19,10 @@ Run applications on separate X session
 rm -rf %{buildroot}
 mkdir -p $RPM_BUILD_ROOT%{_bindir}
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rsepx/create.d
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rsepx/rc.d
 cp rsepx $RPM_BUILD_ROOT%{_bindir}
+cp -R conf/* $RPM_BUILD_ROOT%{_sysconfdir}/rsepx/
 cp *.desktop $RPM_BUILD_ROOT%{_datadir}/applications/
 
 %clean
@@ -36,3 +39,4 @@ rm %{_bindir}/rsepx-wine
 %doc
 %{_bindir}/*
 %{_datadir}/*
+%{_sysconfdir}/*
