@@ -4,6 +4,13 @@ usage()
   echo "Usage: " `basename $0` " [--wine] [--1024] [--800] <command>"
 
 }
+
+SYS_CONF_DIR='/etc/rsepx'
+USER_CONF_DIR=`readlink -f ~/.config/rsepx`
+CREATE_CONF_DIR="create.d"
+RC_DIR="rc.d"
+WINE_PARAMS="winerc"
+
 echo `pwd` "$*" >/tmp/error
 if [[ $( basename $0 ) = "rsepx-wine" ]]
 then
@@ -50,7 +57,13 @@ fi
 
 if [[ "x$wine" = "xyes" ]]
 then
- params="\"$command $params\""
+ wparams=""
+ if [ -f "$SYS_CONF_DIR/$WINE_PARAMS" ]
+ then
+  cat "$SYS_CONF_DIR/$WINE_PARAMS" | while read line ; do wparams="$wparams $line" ; done 
+ fi 
+ 
+ params="$wparams \"$command $params\""
  command="/usr/bin/wine"
  prefix="WINEDEBUG=-all"
  fullpath=$command
@@ -70,6 +83,21 @@ if [ ! -z "$xrandr" ]
 then
  echo "xrandr -s \"$xrandr\"" >> $script
 fi
+for file in $SYS_CONF_DIR/$CREATE_CONF_DIR/* $USER_CONF_DIR/$CREATE_CONF_DIR/* 
+do
+  if [ -x "$file" ]
+  then
+  . $file $script $command $params
+  fi 
+done
+for file in $SYS_CONF_DIR/$RC_DIR/* $USER_CONF_DIR/$RC_DIR/* 
+do
+  if [ -x "$file" ]
+  then
+   echo ". " $file $script $command $params >> $script
+  fi 
+done
+
 echo $prefix $command $params >> $script
 #echo $script
 chmod +x $script
@@ -78,5 +106,6 @@ while [ -f /tmp/.X$DISPLAY_NO-lock ]
 do
  let DISPLAY_NO+=1
 done
+cat $script
 startx $script -- :$DISPLAY_NO >/dev/null
 #rm $script
