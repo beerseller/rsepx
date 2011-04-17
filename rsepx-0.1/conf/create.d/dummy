@@ -1,0 +1,4 @@
+# $1 - script name
+# $2 - command
+# other - params
+echo "#test" >> "$1"
